@@ -1,0 +1,307 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+  <title>Code Infinity Loop</title>
+  <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="description" content="The HTML5 Herald" />
+<meta name="author" content="" /><meta property="og:title" content="HMAC Implementation in JAVA" />
+<meta property="og:description" content="This blog post detailed how to sign HTTP request messages with HMAC to enable efficient and secure authentication. This is an additional layer of security over HTTPS. Some times there would be a situation to track the usage of the APIs for each client/customer." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://codeinfinityloop.github.io/posts/hmac-implementation-in-java/" />
+<meta property="article:published_time" content="2020-05-04T17:40:32&#43;05:30"/>
+<meta property="article:modified_time" content="2020-05-04T17:40:32&#43;05:30"/>
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="HMAC Implementation in JAVA"/>
+<meta name="twitter:description" content="This blog post detailed how to sign HTTP request messages with HMAC to enable efficient and secure authentication. This is an additional layer of security over HTTPS. Some times there would be a situation to track the usage of the APIs for each client/customer."/>
+
+<meta name="generator" content="Hugo 0.55.6" />
+    
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css" integrity="sha256-l85OmPOjvil/SOvVt3HnSSjzF1TUMyT9eV0c2BzEGzU=" crossorigin="anonymous" />
+  <link rel="stylesheet" href="https://codeinfinityloop.github.io/fontawesome/css/all.min.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Slab|Ruda" />
+  <link rel="stylesheet" type="text/css" href="https://codeinfinityloop.github.io/css/styles.css" /></head>
+
+<body>
+  <div id="container">
+    <header>
+      <h1>
+                <a href="https://codeinfinityloop.github.io/">Code Infinity Loop</a>
+            </h1>
+
+      <ul id="social-media">
+             <li>
+               <a href="https://www.facebook.com/" title="Facebook">
+               <i class="fab fa-facebook fa-lg"></i>
+               </a>
+             </li>
+             <li>
+               <a href="https://github.com/funkydan2" title="GitHub">
+               <i class="fab fa-github fa-lg"></i>
+               </a>
+             </li>
+             <li>
+               <a href="https://gitlab.com/" title="GitLab">
+               <i class="fab fa-gitlab fa-lg"></i>
+               </a>
+             </li>
+             <li>
+               <a href="https://twitter.com/ds_says" title="Twitter">
+               <i class="fab fa-twitter fa-lg"></i>
+               </a>
+             </li>
+             <li>
+               <a href="https://linkedin.com/in/" title="LinkedIn">
+               <i class="fab fa-linkedin fa-lg"></i>
+               </a>
+             </li>
+             <li>
+               <a href="https://www.instagram.com/" title="Instagram">
+               <i class="fab fa-instagram fa-lg"></i>
+               </a>
+             </li>
+      </ul>
+      
+      <p><em>Infinite thoughts which is not perfect and doestn&rsquo;t end</em></p>
+      
+    </header>
+
+    
+<nav>
+    <ul>
+        
+    </ul>
+</nav>
+
+
+    <main>
+
+
+
+
+<article>
+
+    <h1>HMAC Implementation in JAVA</h1>
+
+    
+      <aside>
+    <ul>
+        <li>
+            <time class="post-date" datetime="2020-05-04T17:40:32&#43;05:30">May 4, 2020</time>
+        </li>
+        
+
+        
+
+        <li>4 minutes read</li>
+    </ul>
+</aside>
+
+    
+
+    
+<div class="featured_image">
+    <a href="https://codeinfinityloop.github.io/posts/hmac-implementation-in-java/" title="HMAC Implementation in JAVA">
+        <img src="">
+    </a>
+</div>
+
+
+
+    <p>This blog post detailed how to sign HTTP request messages with HMAC to enable efficient and secure authentication. This is an additional layer of security over HTTPS. Some times there would be a situation to track the usage of the APIs for each client/customer. HMAC authentication module in your codebase sign  the request message with a shared secret, so that server can verify the same at their end.</p>
+
+<blockquote>
+<p>HMAC is <strong>H</strong>ash-based <strong>M</strong>essage <strong>A</strong>uthentication <strong>C</strong>ode (Hashed MAC). HMAC is calculated as signature = HMAC(&ldquo;Message&rdquo;, secret, digest-algorithm)</p>
+</blockquote>
+
+<p>HMAC authentication comprises the following steps</p>
+
+<ol>
+<li>The server needs to generate a shared secret with clientID and share the same clientID and secret with the client application. Each client application will have a different secret.</li>
+<li>Construct request message to be signed(eg- &ldquo;request body&rdquo;|&ldquo;HTTP MEthod&rdquo;|ClientID|timestamp)</li>
+<li>The client generate HMAC value(signature) using the shared secret. Send out the request body to the Server with signature and client identifier(eg:- clientID or code) that uniquely identifies the client on the server-side.</li>
+<li>Server extract HMAC value and client identifier to map shared secret from the request<br /></li>
+<li>Construct request message as client constructed the message to be signed</li>
+<li>Calculate the HMAC value using shared secrets and matches with HMAC value extracted from the request. If HMAC values matches, this means that message integrity is proved and respond to the request</li>
+</ol>
+
+<p>HMAC util class to generate signature</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">import</span> javax.crypto.Mac<span style="color:#f92672">;</span>  
+<span style="color:#f92672">import</span> javax.crypto.spec.SecretKeySpec<span style="color:#f92672">;</span>  
+<span style="color:#f92672">import</span> java.security.InvalidKeyException<span style="color:#f92672">;</span>  
+<span style="color:#f92672">import</span> java.security.NoSuchAlgorithmException<span style="color:#f92672">;</span>  
+<span style="color:#f92672">import</span> java.util.Base64<span style="color:#f92672">;</span>  
+
+
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">HMACUtil</span> <span style="color:#f92672">{</span>  
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> String <span style="color:#a6e22e">hmacSHA256Digest</span><span style="color:#f92672">(</span>String message<span style="color:#f92672">,</span> String secret<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> NoSuchAlgorithmException<span style="color:#f92672">,</span> InvalidKeyException <span style="color:#f92672">{</span>  
+        <span style="color:#66d9ef">return</span> hmacDigest<span style="color:#f92672">(</span>message<span style="color:#f92672">,</span> secret<span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;HmacSHA256&#34;</span><span style="color:#f92672">);</span>  
+    <span style="color:#f92672">}</span>  
+
+    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> String <span style="color:#a6e22e">hmacDigest</span><span style="color:#f92672">(</span>String message<span style="color:#f92672">,</span> String secret<span style="color:#f92672">,</span> String algorithm<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> InvalidKeyException<span style="color:#f92672">,</span> NoSuchAlgorithmException <span style="color:#f92672">{</span>  
+        <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>  
+            Mac sha256HMAC <span style="color:#f92672">=</span> Mac<span style="color:#f92672">.</span><span style="color:#a6e22e">getInstance</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;HmacSHA256&#34;</span><span style="color:#f92672">);</span>  
+			SecretKeySpec secretKey <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> SecretKeySpec<span style="color:#f92672">(</span>secret<span style="color:#f92672">.</span><span style="color:#a6e22e">getBytes</span><span style="color:#f92672">(),</span> algorithm<span style="color:#f92672">);</span>  
+            sha256HMAC<span style="color:#f92672">.</span><span style="color:#a6e22e">init</span><span style="color:#f92672">(</span>secretKey<span style="color:#f92672">);</span>  
+            String signature <span style="color:#f92672">=</span> Base64<span style="color:#f92672">.</span><span style="color:#a6e22e">getEncoder</span><span style="color:#f92672">().</span><span style="color:#a6e22e">encodeToString</span><span style="color:#f92672">(</span>sha256HMAC<span style="color:#f92672">.</span><span style="color:#a6e22e">doFinal</span><span style="color:#f92672">(</span>message<span style="color:#f92672">.</span><span style="color:#a6e22e">getBytes</span><span style="color:#f92672">()));</span>  
+            <span style="color:#66d9ef">return</span> signature<span style="color:#f92672">;</span>  
+        <span style="color:#f92672">}</span> <span style="color:#66d9ef">catch</span> <span style="color:#f92672">(</span>Exception ex<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>  
+            System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Error occurred!&#34;</span><span style="color:#f92672">);</span>  
+            <span style="color:#66d9ef">throw</span> ex<span style="color:#f92672">;</span>  
+        <span style="color:#f92672">}</span>  
+    <span style="color:#f92672">}</span>  
+<span style="color:#f92672">}</span></code></pre></div>
+<p><strong>On the client-side</strong>, we need to sign the request message with the shared secret and send it to the Server to verify that the data has not been altered or replaced. Below snippet shows generation of HMAC signature generation and HTTP request beader builder which will be passed to the server.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">import</span> util.HMACUtil<span style="color:#f92672">;</span>  
+<span style="color:#f92672">import</span> java.security.InvalidKeyException<span style="color:#f92672">;</span>  
+<span style="color:#f92672">import</span> java.security.NoSuchAlgorithmException<span style="color:#f92672">;</span>  
+<span style="color:#f92672">import</span> java.text.SimpleDateFormat<span style="color:#f92672">;</span>  
+<span style="color:#f92672">import</span> java.util.Date<span style="color:#f92672">;</span>  
+<span style="color:#f92672">import</span> java.util.HashMap<span style="color:#f92672">;</span>
+
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">ApiClient</span> <span style="color:#f92672">{</span>  
+
+    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">apiInvokerMethod</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>  
+        <span style="color:#75715e">/*  
+</span><span style="color:#75715e">          Generate and Request Header and set in Rest API client  
+</span><span style="color:#75715e">          API invocation code */</span>  
+    <span style="color:#f92672">}</span>  
+
+    <span style="color:#66d9ef">private</span> HashMap<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> String<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">requestHeaderBuilder</span><span style="color:#f92672">()</span> <span style="color:#66d9ef">throws</span> NoSuchAlgorithmException<span style="color:#f92672">,</span> InvalidKeyException <span style="color:#f92672">{</span>  
+        <span style="color:#75715e">// Generate Request Header and set in HTTP header  
+</span><span style="color:#75715e"></span>       <span style="color:#75715e">// - Authorization Header has format of &#34;ClientID:Signature&#34; // - Also append nonce and timeStamp in the request header  
+</span><span style="color:#75715e"></span>        String clientID <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;765fb4f7-9e3d-415b-9152-d0b27732f126&#34;</span><span style="color:#f92672">;</span>  
+        String nonce <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;4J8pirLzX6oIF0IIIaUU&#34;</span><span style="color:#f92672">;</span> <span style="color:#75715e">// Generate random String, eg - RandomStringUtils.randomNumeric(15);  
+</span><span style="color:#75715e"></span>        String timeStamp <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> SimpleDateFormat<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;yyyyMMddHHmmss&#34;</span><span style="color:#f92672">).</span><span style="color:#a6e22e">format</span><span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> Date<span style="color:#f92672">());</span>  
+        String signature <span style="color:#f92672">=</span> generateSignature<span style="color:#f92672">(</span>clientID<span style="color:#f92672">,</span> nonce<span style="color:#f92672">,</span> timeStamp<span style="color:#f92672">);</span>  
+        String authorizationValue <span style="color:#f92672">=</span> clientID <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;:&#34;</span> <span style="color:#f92672">+</span> signature<span style="color:#f92672">;</span>  
+        HashMap<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> String<span style="color:#f92672">&gt;</span> requestHeader <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HashMap<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> String<span style="color:#f92672">&gt;();</span>  
+        requestHeader<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;nonce&#34;</span><span style="color:#f92672">,</span> nonce<span style="color:#f92672">);</span>  
+        requestHeader<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;timestamp&#34;</span><span style="color:#f92672">,</span> timeStamp<span style="color:#f92672">);</span>  
+        requestHeader<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Content-Type&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;application/json&#34;</span><span style="color:#f92672">);</span>  
+        requestHeader<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Accept&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;application/json&#34;</span><span style="color:#f92672">);</span>  
+        requestHeader<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Authorization&#34;</span><span style="color:#f92672">,</span> authorizationValue<span style="color:#f92672">);</span>  
+       <span style="color:#66d9ef">return</span> requestHeader<span style="color:#f92672">;</span>  
+    <span style="color:#f92672">}</span>  
+
+    <span style="color:#66d9ef">private</span> String <span style="color:#a6e22e">generateSignature</span><span style="color:#f92672">(</span>String clientID<span style="color:#f92672">,</span> String nonce<span style="color:#f92672">,</span> String timestamp<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> InvalidKeyException<span style="color:#f92672">,</span> NoSuchAlgorithmException <span style="color:#f92672">{</span>  
+        <span style="color:#66d9ef">return</span> HMACUtil<span style="color:#f92672">.</span><span style="color:#a6e22e">hmacSHA256Digest</span><span style="color:#f92672">(</span>message<span style="color:#f92672">(</span>clientID<span style="color:#f92672">,</span> nonce<span style="color:#f92672">,</span> timestamp<span style="color:#f92672">),</span> <span style="color:#e6db74">&#34;shared-secret-generated-by-server&#34;</span><span style="color:#f92672">);</span>  
+    <span style="color:#f92672">}</span>  
+
+    <span style="color:#66d9ef">private</span> String <span style="color:#a6e22e">message</span><span style="color:#f92672">(</span>String clientID<span style="color:#f92672">,</span> String nonce<span style="color:#f92672">,</span> String timestamp<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>  
+        String method <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;POST&#34;</span><span style="color:#f92672">;</span>  
+        String url <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;https://example.com/post/blog&#34;</span><span style="color:#f92672">;</span>  
+        String requestData <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;{\\\&#34;data\\\&#34;: \\\&#34;New Post\\\&#34;}&#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">trim</span><span style="color:#f92672">();</span>  
+        <span style="color:#66d9ef">return</span> String<span style="color:#f92672">.</span><span style="color:#a6e22e">join</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;,&#34;</span><span style="color:#f92672">,</span> clientID<span style="color:#f92672">,</span> method<span style="color:#f92672">,</span> url<span style="color:#f92672">,</span> requestData<span style="color:#f92672">,</span> nonce<span style="color:#f92672">,</span> timestamp<span style="color:#f92672">);</span>  
+   <span style="color:#f92672">}</span>  
+<span style="color:#f92672">}</span></code></pre></div>
+<p>So it will generate Request Header</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-console" data-lang="console">{Authorization=765fb4f7-9e3d-415b-9152-d0b27732f126:LhSR8TLYd23ylClWWJN6vTJKz3HFCSAMD8R4HO//P70=, Accept=application/json, nonce=4J8pirLzX6oIF0IIIaUU, timestamp=20200510084646, Content-Type=application/json}</code></pre></div>
+<p><strong>Server-side</strong>  will receive an HTTP request with a request header as mentioned above. The server parses the request header and finds out the Client from the clientID in the Authorization Header. So the shared secret key is mapped against this Client will be used to generate HMAC signature. Then the server can check the integrity of the message by comparing the signature generated by the Server and signature passed in request Header value(Authorization Header).</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">import</span> main.java.com.codeinfinity.r_d_blog.util.HMACUtil<span style="color:#f92672">;</span>  
+
+<span style="color:#f92672">import</span> java.security.InvalidKeyException<span style="color:#f92672">;</span>  
+<span style="color:#f92672">import</span> java.security.NoSuchAlgorithmException<span style="color:#f92672">;</span>  
+
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">ServerSignatureVerifier</span> <span style="color:#f92672">{</span>  
+
+    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">boolean</span> <span style="color:#a6e22e">verifySignature</span><span style="color:#f92672">(</span>HTTPRequestDTO HTTPRequestDTO<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> NoSuchAlgorithmException<span style="color:#f92672">,</span> InvalidKeyException <span style="color:#f92672">{</span>  
+        String authorization <span style="color:#f92672">=</span> HTTPRequestDTO<span style="color:#f92672">.</span><span style="color:#a6e22e">getAuthorization</span><span style="color:#f92672">();</span>  
+        String<span style="color:#f92672">[]</span> authorizationStrings <span style="color:#f92672">=</span> authorization<span style="color:#f92672">.</span><span style="color:#a6e22e">split</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;:&#34;</span><span style="color:#f92672">);</span>  
+        String clientID <span style="color:#f92672">=</span> authorizationStrings<span style="color:#f92672">[</span>0<span style="color:#f92672">];</span>  
+        String receivedSignature <span style="color:#f92672">=</span> authorizationStrings<span style="color:#f92672">[</span>1<span style="color:#f92672">];</span>  
+        String generatedSignature <span style="color:#f92672">=</span> generateSignature<span style="color:#f92672">(</span>clientID<span style="color:#f92672">,</span> HTTPRequestDTO<span style="color:#f92672">);</span>  
+        <span style="color:#66d9ef">return</span> receivedSignature<span style="color:#f92672">.</span><span style="color:#a6e22e">equalsIgnoreCase</span><span style="color:#f92672">(</span>generatedSignature<span style="color:#f92672">);</span>  
+    <span style="color:#f92672">}</span>  
+
+    <span style="color:#66d9ef">private</span> String <span style="color:#a6e22e">generateSignature</span><span style="color:#f92672">(</span>String clientID<span style="color:#f92672">,</span> HTTPRequestDTO HTTPRequestDTO<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> InvalidKeyException<span style="color:#f92672">,</span> NoSuchAlgorithmException <span style="color:#f92672">{</span>  
+        <span style="color:#66d9ef">return</span> HMACUtil<span style="color:#f92672">.</span><span style="color:#a6e22e">hmacSHA256Digest</span><span style="color:#f92672">(</span>message<span style="color:#f92672">(</span>clientID<span style="color:#f92672">,</span> HTTPRequestDTO<span style="color:#f92672">),</span> <span style="color:#e6db74">&#34;shared-secret-generated-by-server&#34;</span><span style="color:#f92672">);</span>  
+    <span style="color:#f92672">}</span>  
+
+    <span style="color:#66d9ef">private</span> String <span style="color:#a6e22e">message</span><span style="color:#f92672">(</span>String clientID<span style="color:#f92672">,</span> HTTPRequestDTO HTTPRequestDTO<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>  
+        String method <span style="color:#f92672">=</span> HTTPRequestDTO<span style="color:#f92672">.</span><span style="color:#a6e22e">getMethod</span><span style="color:#f92672">();</span>  
+        String url <span style="color:#f92672">=</span> HTTPRequestDTO<span style="color:#f92672">.</span><span style="color:#a6e22e">getUrl</span><span style="color:#f92672">();</span>  
+        String requestData <span style="color:#f92672">=</span> HTTPRequestDTO<span style="color:#f92672">.</span><span style="color:#a6e22e">getPayload</span><span style="color:#f92672">();</span>  
+        String nonce <span style="color:#f92672">=</span> HTTPRequestDTO<span style="color:#f92672">.</span><span style="color:#a6e22e">getNonce</span><span style="color:#f92672">();</span>  
+        String timestamp <span style="color:#f92672">=</span> HTTPRequestDTO<span style="color:#f92672">.</span><span style="color:#a6e22e">getTimestamp</span><span style="color:#f92672">();</span>  
+        <span style="color:#66d9ef">return</span> String<span style="color:#f92672">.</span><span style="color:#a6e22e">join</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;,&#34;</span><span style="color:#f92672">,</span> clientID<span style="color:#f92672">,</span> method<span style="color:#f92672">,</span> url<span style="color:#f92672">,</span> requestData<span style="color:#f92672">,</span> nonce<span style="color:#f92672">,</span> timestamp<span style="color:#f92672">);</span>  
+    <span style="color:#f92672">}</span>  
+
+    <span style="color:#75715e">// This is sample RequestDTO - replace same with HttpServletRequest
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">HTTPRequestDTO</span> <span style="color:#f92672">{</span>  
+      <span style="color:#66d9ef">private</span> String url<span style="color:#f92672">;</span>  
+      <span style="color:#66d9ef">private</span> String method<span style="color:#f92672">;</span>  
+      <span style="color:#66d9ef">private</span> String authorization<span style="color:#f92672">;</span>  
+      <span style="color:#66d9ef">private</span> String nonce<span style="color:#f92672">;</span>  
+      <span style="color:#66d9ef">private</span> String timestamp<span style="color:#f92672">;</span>  
+      <span style="color:#66d9ef">private</span> String payload<span style="color:#f92672">;</span>  
+
+      <span style="color:#66d9ef">public</span> <span style="color:#a6e22e">HTTPRequestDTO</span><span style="color:#f92672">(</span>String url<span style="color:#f92672">,</span> String method<span style="color:#f92672">,</span> String authorization<span style="color:#f92672">,</span> String nonce<span style="color:#f92672">,</span> String timestamp<span style="color:#f92672">,</span> String payload<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>  
+                 <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">url</span> <span style="color:#f92672">=</span> url<span style="color:#f92672">;</span>  
+                 <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">method</span> <span style="color:#f92672">=</span> method<span style="color:#f92672">;</span>  
+                 <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">authorization</span> <span style="color:#f92672">=</span> authorization<span style="color:#f92672">;</span>  
+                 <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">nonce</span> <span style="color:#f92672">=</span> nonce<span style="color:#f92672">;</span>  
+                 <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">timestamp</span> <span style="color:#f92672">=</span> timestamp<span style="color:#f92672">;</span>  
+                 <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">payload</span> <span style="color:#f92672">=</span> payload<span style="color:#f92672">;</span>  
+       <span style="color:#f92672">}</span>  
+
+       <span style="color:#66d9ef">public</span> String <span style="color:#a6e22e">getUrl</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>  
+                 <span style="color:#66d9ef">return</span> url<span style="color:#f92672">;</span>  
+       <span style="color:#f92672">}</span>  
+
+       <span style="color:#66d9ef">public</span> String <span style="color:#a6e22e">getMethod</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>  
+                 <span style="color:#66d9ef">return</span> method<span style="color:#f92672">;</span>  
+       <span style="color:#f92672">}</span>  
+
+       <span style="color:#66d9ef">public</span> String <span style="color:#a6e22e">getAuthorization</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>  
+                 <span style="color:#66d9ef">return</span> authorization<span style="color:#f92672">;</span>  
+       <span style="color:#f92672">}</span>  
+
+       <span style="color:#66d9ef">public</span> String <span style="color:#a6e22e">getNonce</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>  
+                 <span style="color:#66d9ef">return</span> nonce<span style="color:#f92672">;</span>  
+       <span style="color:#f92672">}</span>  
+
+       <span style="color:#66d9ef">public</span> String <span style="color:#a6e22e">getTimestamp</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>  
+                 <span style="color:#66d9ef">return</span> timestamp<span style="color:#f92672">;</span>  
+       <span style="color:#f92672">}</span>  
+
+       <span style="color:#66d9ef">public</span> String <span style="color:#a6e22e">getPayload</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>  
+                 <span style="color:#66d9ef">return</span> payload<span style="color:#f92672">;</span>  
+       <span style="color:#f92672">}</span>
+
+    <span style="color:#f92672">}</span>  
+<span style="color:#f92672">}</span></code></pre></div>
+
+</article>
+
+
+<section class="post-nav">
+    <ul>
+        
+        
+    </ul>
+</section>
+    
+    
+
+
+
+
+
+</main>
+    <footer>
+        <h6>Copyright &copy; 2019 - Code Infinity |
+            Rendered by <a href="https://gohugo.io" title="Hugo">Hugo</a> |
+            <a href="https://codeinfinityloop.github.io/index.xml">Subscribe </a></h6>
+    </footer>
+</div>
+<script src="https://codeinfinityloop.github.io/js/scripts.js"></script>
+
+</body>
+
+</html>
+

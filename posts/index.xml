@@ -1,14 +1,14 @@
 
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
  <channel>
-   <title>Code Infinity Loop</title>
-   <link>https://codeinfinityloop.github.io/</link>
-   <description>Recent content on Code Infinity Loop</description>
+   <title>Posts on Code Infinity Loop</title>
+   <link>https://codeinfinityloop.github.io/posts/</link>
+   <description>Recent content in Posts on Code Infinity Loop</description>
    <generator>Hugo -- gohugo.io</generator>
    <copyright>Copyright &amp;copy; 2019 - Code Infinity</copyright>
    <lastBuildDate>Mon, 04 May 2020 17:40:32 +0530</lastBuildDate>
    
-       <atom:link href="https://codeinfinityloop.github.io/index.xml" rel="self" type="application/rss+xml" />
+       <atom:link href="https://codeinfinityloop.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
    
    
      <item>
